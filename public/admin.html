@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — HITZONE Indoor Cricket Arena</title>
+  <meta name="theme-color" content="#0F1B3D">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="admin-body">
+  <div id="site-header"></div>
+
+  <main class="container" id="main">
+    <!-- LOGIN -->
+    <section class="login-card" id="login">
+      <img src="/images/favicon.svg" alt="" width="64" height="64">
+      <h1 style="font-size:1.6rem;margin:0">Staff login</h1>
+      <p class="muted" style="margin:6px 0 0">Manage bookings for HITZONE Indoor Cricket Arena.</p>
+      <form id="login-form">
+        <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required autofocus></div>
+        <div class="form-error hidden" id="login-error" role="alert"></div>
+        <button class="btn btn-block" type="submit">Sign in</button>
+      </form>
+    </section>
+
+    <!-- APP -->
+    <section id="app" class="hidden">
+      <div class="admin-top">
+        <h1>Dashboard</h1>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" id="btn-new" type="button">+ New booking / block</button>
+          <button class="btn btn-ghost" id="btn-logout" type="button">Sign out</button>
+        </div>
+      </div>
+      <div id="banners"></div>
+      <div class="stat-grid" id="stats"></div>
+
+      <div class="tabs" role="tablist" id="tabs">
+        <button role="tab" data-tab="requests" class="active">Requests <span class="count hidden" id="req-count">0</span></button>
+        <button role="tab" data-tab="schedule">Daily schedule</button>
+        <button role="tab" data-tab="all">All bookings</button>
+        <button role="tab" data-tab="settings">Settings</button>
+      </div>
+
+      <div id="pane-requests"></div>
+      <div id="pane-schedule" class="hidden"></div>
+      <div id="pane-all" class="hidden"></div>
+      <div id="pane-settings" class="hidden"></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="/js/common.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+.env
+node_modules/
+data/backups/
+data/outbox.log
+data/mail-errors.log
+*.tmp

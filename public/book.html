@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book a slot — HITZONE Indoor Cricket Arena</title>
+  <meta name="theme-color" content="#0F1B3D">
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <section class="page-hero">
+    <div class="container">
+      <h1>Book your slot</h1>
+      <p>Choose a date, tap your time, and send your request. It takes less than a minute.</p>
+    </div>
+  </section>
+
+  <main class="container">
+    <div class="book-layout">
+      <div>
+        <!-- 1. DATE -->
+        <section class="panel" id="p-date" aria-labelledby="h-date">
+          <div class="panel-head"><span class="num">1</span><h2 id="h-date">Pick a date</h2>
+            <span class="aside legend"><span>Open</span><span class="l-few">Few left</span><span class="l-full">Full</span></span></div>
+          <div class="date-strip" id="date-strip" role="listbox" aria-label="Available dates"></div>
+          <div class="date-extra">
+            <label for="date-input">Need a later date?</label>
+            <input type="date" id="date-input">
+          </div>
+        </section>
+
+        <!-- 2. TIME -->
+        <section class="panel" id="p-time" aria-labelledby="h-time">
+          <div class="panel-head"><span class="num">2</span><h2 id="h-time">Choose your time</h2>
+            <span class="aside" id="time-aside"></span></div>
+          <div id="slots-area"></div>
+          <div class="duration hidden" id="duration">
+            <b>Duration</b>
+            <div class="stepper" role="group" aria-label="Duration">
+              <button type="button" id="dur-minus" aria-label="Shorter">−</button>
+              <output id="dur-out" aria-live="polite">1 hour</output>
+              <button type="button" id="dur-plus" aria-label="Longer">+</button>
+            </div>
+            <span class="muted" id="dur-range"></span>
+          </div>
+          <p class="hint" id="slot-hint">Tap a start time. To play longer, tap a later slot or use the + button — slots must be back-to-back.</p>
+        </section>
+
+        <!-- 3. DETAILS -->
+        <section class="panel locked" id="p-details" aria-labelledby="h-details">
+          <div class="panel-head"><span class="num">3</span><h2 id="h-details">Your details</h2></div>
+          <form id="form" novalidate>
+            <div class="form-grid">
+              <div class="field"><label for="f-name">Full name</label><input id="f-name" name="name" type="text" autocomplete="name" maxlength="60" required placeholder="e.g. Nuwan Perera"><div class="err" data-err="name"></div></div>
+              <div class="field"><label for="f-phone">Phone / WhatsApp</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required placeholder="077 123 4567"><div class="err" data-err="phone"></div></div>
+              <div class="field"><label for="f-email">Email <span class="opt">(recommended)</span></label><input id="f-email" name="email" type="email" autocomplete="email" maxlength="120" placeholder="you@example.com"><div class="help">We'll email your QR receipt and confirmation.</div><div class="err" data-err="email"></div></div>
+              <div class="field"><label for="f-players">Number of players</label><input id="f-players" name="players" type="number" min="1" max="30" value="6" inputmode="numeric"><div class="err" data-err="players"></div></div>
+              <div class="field full"><label for="f-notes">Notes <span class="opt">(optional)</span></label><textarea id="f-notes" name="notes" maxlength="300" placeholder="Birthday game, team practice, need extra balls…"></textarea></div>
+            </div>
+            <div class="form-error hidden" id="form-error" role="alert"></div>
+            <div style="margin-top:20px"><button class="btn btn-block" type="submit" id="submit">Send booking request</button></div>
+            <p class="hint center" id="submit-note"></p>
+          </form>
+        </section>
+      </div>
+
+      <!-- SUMMARY -->
+      <aside class="panel summary" id="summary" aria-live="polite">
+        <h3>Your booking</h3>
+        <div class="empty" id="sum-empty">Pick a date and time to see your total.</div>
+        <dl id="sum-list" class="hidden">
+          <div><dt>Date</dt><dd id="sum-date"></dd></div>
+          <div><dt>Time</dt><dd id="sum-time"></dd></div>
+          <div><dt>Duration</dt><dd id="sum-dur"></dd></div>
+          <div><dt>Rate</dt><dd id="sum-rate"></dd></div>
+        </dl>
+        <div class="total"><span>Total</span><b id="sum-total">LKR 0</b></div>
+        <p class="note" id="sum-note"></p>
+      </aside>
+    </div>
+  </main>
+
+  <div class="mobile-bar" id="mobile-bar">
+    <div class="info"><span id="mb-when"></span><b id="mb-total"></b></div>
+    <button class="btn" type="button" id="mb-btn">Continue</button>
+  </div>
+
+  <div id="site-footer"></div>
+  <script src="/js/common.js"></script>
+  <script src="/js/book.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "businessName": "HITZONE Indoor Cricket Arena",
+  "tagline": "Come. Play. Hit. Repeat.",
+  "currency": "LKR",
+  "pricePerHour": 5500,
+  "openTime": "00:00",
+  "closeTime": "23:59",
+  "slotMinutes": 60,
+  "maxHoursPerBooking": 4,
+  "advanceBookingDays": 30,
+  "minNoticeMinutes": 30,
+  "timezone": "Asia/Colombo",
+  "autoConfirm": false,
+  "closedDates": [],
+  "paymentNote": "Please pay at the arena before you start playing.",
+  "contact": {
+    "phone": "0703567866",
+    "whatsapp": "",
+    "email": "",
+    "address": "",
+    "mapUrl": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "hitzone-booking",
+  "version": "1.0.0",
+  "description": "HITZONE Indoor Cricket Arena - online slot booking website (zero dependencies)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/run-tests.js"
+  },
+  "engines": { "node": ">=18" },
+  "license": "UNLICENSED",
+  "private": true
+}
