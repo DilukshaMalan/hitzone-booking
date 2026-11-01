@@ -50,10 +50,18 @@ async function api(path, { method = 'GET', body, auth } = {}) {
 const pad2 = (n) => String(n).padStart(2, '0');
 const fmtMoney = (n, cur = 'LKR') => `${cur} ${Number(n).toLocaleString('en-US')}`;
 function fmt12(t) {
-  const [hh, mm] = t.split(':').map(Number);
-  if (hh === 24) return `12:${pad2(mm)} AM`;
+  const [h0, mm] = t.split(':').map(Number);
+  const hh = h0 % 24; // 24:00 = midnight, 25:30 = 1:30 AM the next day
   return `${hh % 12 || 12}:${pad2(mm)} ${hh >= 12 ? 'PM' : 'AM'}`;
 }
+/** minutes-from-midnight (may exceed 1440) -> "HH:MM" string */
+const hhmm = (m) => `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
+/** End time for display: "12:00 AM" at midnight, "1:30 AM (next day)" when it runs past midnight. */
+const fmtEnd = (t) => (minutes(t) > 1440 ? `${fmt12(t)} (next day)` : fmt12(t));
+const fmtRange = (a, b) => `${fmt12(a)} – ${fmtEnd(b)}`;
+/** a time given as minutes from midnight of the selected day */
+const fmtMin = (m) => fmt12(hhmm(m));
+const fmtEndMin = (m) => fmtEnd(hhmm(m));
 const dateObj = (s) => new Date(`${s}T00:00:00Z`);
 const longDate = (s) => new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(dateObj(s));
 const mediumDate = (s) => new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' }).format(dateObj(s));
@@ -61,7 +69,14 @@ const dowOf = (s) => new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday
 const domOf = (s) => String(dateObj(s).getUTCDate());
 const monOf = (s) => new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'short' }).format(dateObj(s));
 const hoursText = (c) => (c.openTime === '00:00' && c.closeTime === '24:00' ? '24 hours' : `${fmt12(c.openTime)} – ${fmt12(c.closeTime)}`);
-const hoursLabel = (n) => `${n} hour${n === 1 ? '' : 's'}`;
+const hoursLabel = (n) => {
+  const m = Math.round(Number(n) * 60);
+  const hh = Math.floor(m / 60);
+  const mm = m % 60;
+  if (!hh) return `${mm} min`;
+  if (!mm) return `${hh} hour${hh === 1 ? '' : 's'}`;
+  return `${hh} hr ${mm} min`;
+};
 const minutes = (t) => { const [a, b] = t.split(':').map(Number); return a * 60 + b; };
 const waDigits = (p) => { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('0')) d = '94' + d.slice(1); return d; };
 

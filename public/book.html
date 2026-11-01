@@ -17,7 +17,7 @@
   <section class="page-hero">
     <div class="container">
       <h1>Book your slot</h1>
-      <p>Choose a date, tap your time, and send your request. It takes less than a minute.</p>
+      <p>Choose a date, pick your own start and finish time, and send your request. It takes less than a minute.</p>
     </div>
   </section>
 
@@ -39,17 +39,25 @@
         <section class="panel" id="p-time" aria-labelledby="h-time">
           <div class="panel-head"><span class="num">2</span><h2 id="h-time">Choose your time</h2>
             <span class="aside" id="time-aside"></span></div>
+          <div class="tl-key" aria-hidden="true"><span><i class="k-free"></i>Available</span><span><i class="k-booked"></i>Already booked</span><span><i class="k-closed"></i>Not available</span><span><i class="k-sel"></i>Your time</span></div>
+          <div class="tl" id="tl-wrap"><div class="tl-track" id="tl-track" role="group" aria-label="Timeline of the day. Green is free, red is booked."></div><div class="tl-ticks" id="tl-ticks" aria-hidden="true"></div></div>
+          <p class="tl-hint" id="tl-hint">Tap a free (green) part of the bar to set your start time, or use the boxes below. You can start and finish at any time, e.g. 3:00 PM to 5:30 PM.</p>
           <div id="slots-area"></div>
-          <div class="duration hidden" id="duration">
-            <b>Duration</b>
-            <div class="stepper" role="group" aria-label="Duration">
-              <button type="button" id="dur-minus" aria-label="Shorter">−</button>
-              <output id="dur-out" aria-live="polite">1 hour</output>
-              <button type="button" id="dur-plus" aria-label="Longer">+</button>
-            </div>
-            <span class="muted" id="dur-range"></span>
+          <div id="day-lists" class="day-lists hidden">
+            <div class="day-list booked"><h3>Already booked</h3><ul id="list-booked"></ul></div>
+            <div class="day-list free"><h3>Available</h3><ul id="list-free"></ul></div>
           </div>
-          <p class="hint" id="slot-hint">Tap a start time. To play longer, tap a later slot or use the + button — slots must be back-to-back.</p>
+          <div id="pick-area" class="hidden">
+            <div class="pick">
+              <div class="field"><label for="sel-start">Start time</label><select id="sel-start"></select></div>
+              <div class="field"><label for="sel-end">End time</label><select id="sel-end" disabled></select></div>
+            </div>
+            <p class="pick-msg" id="pick-msg" aria-live="polite"></p>
+            <div class="duration hidden" id="duration">
+              <div style="width:100%"><b>Quick lengths</b> <span class="muted" id="dur-range"></span></div>
+              <div class="dur-chips" id="dur-chips" role="group" aria-label="Quick lengths"></div>
+            </div>
+          </div>
         </section>
 
         <!-- 3. DETAILS -->

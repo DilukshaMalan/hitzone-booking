@@ -4,8 +4,9 @@
   "currency": "LKR",
   "pricePerHour": 5500,
   "openTime": "00:00",
-  "closeTime": "23:59",
-  "slotMinutes": 60,
+  "closeTime": "24:00",
+  "stepMinutes": 15,
+  "minBookingMinutes": 60,
   "maxHoursPerBooking": 4,
   "advanceBookingDays": 30,
   "minNoticeMinutes": 30,
@@ -14,10 +15,11 @@
   "closedDates": [],
   "paymentNote": "Please pay at the arena before you start playing.",
   "contact": {
-    "phone": "0703567866",
+    "phone": "",
     "whatsapp": "",
     "email": "",
     "address": "",
     "mapUrl": ""
-  }
+  },
+  "settingsVersion": 3
 }

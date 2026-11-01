@@ -121,7 +121,7 @@ async function renderTab() {
 /* ---------------- shared bits ---------------- */
 function waLink(b) {
   if (!b.whatsapp) return null;
-  const when = `${longDate(b.date)}, ${fmt12(b.start)} - ${fmt12(b.end)}`;
+  const when = `${longDate(b.date)}, ${fmtRange(b.start, b.end)}`;
   const text = b.status === 'confirmed'
     ? `Hi ${b.name}, your HITZONE booking ${b.ref} is confirmed for ${when}. See you at the arena! Receipt: ${location.origin}/receipt.html?ref=${b.ref}`
     : `Hi ${b.name}, this is HITZONE Indoor Cricket Arena about your booking request ${b.ref} (${when}).`;
@@ -171,7 +171,7 @@ async function renderRequests() {
   for (const b of list) {
     pane.append(h('div', { class: 'card req' },
       h('div', {},
-        h('div', { class: 'when' }, `${mediumDate(b.date)} · ${fmt12(b.start)} – ${fmt12(b.end)}`),
+        h('div', { class: 'when' }, `${mediumDate(b.date)} · ${fmtRange(b.start, b.end)}`),
         h('div', { style: 'margin-top:2px' }, h('b', {}, b.name), ` · ${hoursLabel(b.hours)} · `, h('b', {}, fmtMoney(b.amount, b.currency)), ` · ${b.players} player${b.players === 1 ? '' : 's'}`),
         h('div', { class: 'meta' }, ...contactLine(b), h('span', {}, `Ref ${b.ref}`), h('span', {}, `Requested ${new Date(b.createdAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}`)),
         b.notes ? h('div', { class: 'notes' }, `“${b.notes}”`) : null),
@@ -195,27 +195,22 @@ async function renderSchedule() {
   try { data = await call(`/api/admin/day?date=${A.day}`); } catch (err) { return guard(err); }
   if (data.closed) pane.append(h('div', { class: 'banner' }, 'This date is marked as closed in Settings.'));
   const wrap = h('div', { class: 'sched' });
-  // group consecutive slots that belong to the same booking
-  const groups = [];
-  for (const s of data.slots) {
-    const last = groups[groups.length - 1];
-    if (s.booking && last && last.booking && last.booking.ref === s.booking.ref) last.end = s.end;
-    else groups.push({ start: s.start, end: s.end, booking: s.booking });
-  }
-  for (const g of groups) {
-    if (!g.booking) {
+  for (const r of data.rows) {
+    if (r.type === 'free') {
+      const mins = r.end - r.start;
       wrap.append(h('div', { class: 's free' },
-        h('div', { class: 'time' }, `${fmt12(g.start)} – ${fmt12(g.end)}`),
-        h('div', { class: 'free-label' }, 'Free'),
+        h('div', { class: 'time' }, `${fmtMin(r.start)} – ${fmtEndMin(r.end)}`),
+        h('div', { class: 'free-label' }, `Free · ${hoursLabel(mins / 60)}`),
         h('div', { class: 'row-actions' },
-          h('button', { class: 'btn btn-sm btn-ghost', type: 'button', onclick: () => openNewModal({ date: A.day, start: g.start, type: 'walkin' }) }, '+ Walk-in'),
-          h('button', { class: 'btn btn-sm btn-ghost', type: 'button', onclick: () => openNewModal({ date: A.day, start: g.start, type: 'block' }) }, 'Block'))));
+          h('button', { class: 'btn btn-sm btn-ghost', type: 'button', onclick: () => openNewModal({ date: A.day, start: hhmm(r.start), end: hhmm(r.end % 1440), type: 'walkin' }) }, '+ Walk-in'),
+          h('button', { class: 'btn btn-sm btn-ghost', type: 'button', onclick: () => openNewModal({ date: A.day, start: hhmm(r.start), end: hhmm(r.end % 1440), type: 'block' }) }, 'Block'))));
     } else {
-      const b = g.booking;
+      const b = r.booking;
+      const note = r.fromPrevDay ? ' · started the day before' : minutes(b.end) > 1440 ? ' · continues after midnight' : '';
       wrap.append(h('div', { class: `s ${b.status}` },
-        h('div', { class: 'time' }, `${fmt12(b.start)} – ${fmt12(b.end)}`),
+        h('div', { class: 'time' }, fmtRange(b.start, b.end)),
         h('div', { class: 'who' }, b.type === 'block' ? (b.name || 'Blocked') : b.name,
-          h('small', {}, b.type === 'block' ? (b.notes || 'Blocked — not bookable') : `${hoursLabel(b.hours)} · ${fmtMoney(b.amount, b.currency)} · ${b.ref}${b.checkedInAt ? ' · ✓ arrived' : ''}${b.type === 'walkin' ? ' · walk-in' : ''}`)),
+          h('small', {}, (b.type === 'block' ? (b.notes || 'Blocked — not bookable') : `${hoursLabel(b.hours)} · ${fmtMoney(b.amount, b.currency)} · ${b.ref}${b.checkedInAt ? ' · ✓ arrived' : ''}${b.type === 'walkin' ? ' · walk-in' : ''}`) + note)),
         h('div', { class: 'row-actions' }, h('span', { class: `badge ${b.status}` }, b.status), ...actionButtons(b),
           b.type !== 'block' ? h('a', { class: 'btn btn-sm btn-ghost', href: `/receipt.html?ref=${b.ref}` }, 'Receipt') : null)));
     }
@@ -254,7 +249,7 @@ async function renderAll() {
       tbody.append(h('tr', {},
         h('td', {}, h('span', { class: 'ref' }, b.type === 'block' ? '—' : b.ref)),
         h('td', {}, mediumDate(b.date)),
-        h('td', {}, `${fmt12(b.start)} – ${fmt12(b.end)}`),
+        h('td', {}, fmtRange(b.start, b.end)),
         h('td', {}, h('b', {}, b.name || '—'), b.phone ? h('div', { class: 'muted', style: 'font-size:.82rem' }, b.phone) : null),
         h('td', {}, b.type === 'block' ? '—' : hoursLabel(b.hours)),
         h('td', {}, b.type === 'block' ? '—' : fmtMoney(b.amount, b.currency)),
@@ -298,7 +293,8 @@ function renderSettings() {
       field(`Price per hour (${s.currency})`, num('pricePerHour', s.pricePerHour, 0, 1000000)),
       field('Opening time', h('input', { type: 'time', name: 'openTime', value: s.openTime })),
       field('Closing time', h('input', { type: 'time', name: 'closeTime', value: s.closeTime === '24:00' ? '' : s.closeTime }), 'Same day, e.g. 22:30'),
-      field('Slot length', h('select', { name: 'slotMinutes' }, [30, 60, 90, 120].map((m) => h('option', { value: m, selected: m === s.slotMinutes }, `${m} minutes`)))),
+      field('Time step', h('select', { name: 'stepMinutes' }, [5, 10, 15, 30, 60].map((m) => h('option', { value: m, selected: m === (s.stepMinutes || 15) }, `${m} minutes`))), 'Customers can start and finish on this step, e.g. 15 = 3:00, 3:15, 3:30…'),
+      field('Shortest booking', h('select', { name: 'minBookingMinutes' }, [30, 45, 60, 90, 120].map((m) => h('option', { value: m, selected: m === s.minBookingMinutes }, hoursLabel(m / 60)))), 'Customers cannot book less than this online. You can still add shorter ones yourself.'),
       field('Max hours per booking', num('maxHoursPerBooking', s.maxHoursPerBooking, 1, 12)),
       field('Book up to (days ahead)', num('advanceBookingDays', s.advanceBookingDays, 1, 365)),
       field('Minimum notice (minutes)', num('minNoticeMinutes', s.minNoticeMinutes, 0, 1440), 'Stops last-second online bookings.')),
@@ -325,7 +321,7 @@ function renderSettings() {
     const f = form.elements;
     const all = f.open24.checked;
     const body = {
-      pricePerHour: f.pricePerHour.value, openTime: all ? '00:00' : f.openTime.value, closeTime: all ? '24:00' : f.closeTime.value, slotMinutes: f.slotMinutes.value,
+      pricePerHour: f.pricePerHour.value, openTime: all ? '00:00' : f.openTime.value, closeTime: all ? '24:00' : f.closeTime.value, stepMinutes: f.stepMinutes.value, minBookingMinutes: f.minBookingMinutes.value,
       maxHoursPerBooking: f.maxHoursPerBooking.value, advanceBookingDays: f.advanceBookingDays.value, minNoticeMinutes: f.minNoticeMinutes.value,
       autoConfirm: f.autoConfirm.checked, closedDates: [...closed], paymentNote: f.paymentNote.value,
       contact: { phone: f.c_phone.value, whatsapp: f.c_whatsapp.value, email: f.c_email.value, address: f.c_address.value, mapUrl: f.c_mapUrl.value },
@@ -345,20 +341,22 @@ function renderSettings() {
 }
 
 /* ---------------- new booking / block modal ---------------- */
-function slotStarts() {
-  const s = A.settings;
-  const out = [];
-  for (let t = minutes(s.openTime); t + s.slotMinutes <= minutes(s.closeTime); t += s.slotMinutes) out.push(`${pad2(Math.floor(t / 60))}:${pad2(t % 60)}`);
-  return out;
-}
-
 function openNewModal(pre = {}) {
   let type = pre.type || 'walkin';
-  const starts = slotStarts();
+  const stepSec = (A.settings.stepMinutes || 15) * 60;
   const date = h('input', { type: 'date', value: pre.date || todayStr() });
-  const start = h('select', {}, starts.map((t) => h('option', { value: t, selected: t === pre.start }, fmt12(t))));
-  const maxN = Math.max(1, Math.floor((A.settings.maxHoursPerBooking * 60) / A.settings.slotMinutes));
-  const dur = h('select', {}, Array.from({ length: Math.max(maxN, 8) }, (_, i) => h('option', { value: i + 1 }, hoursLabel(((i + 1) * A.settings.slotMinutes) / 60))));
+  const start = h('input', { type: 'time', step: stepSec, value: pre.start || '' });
+  const end = h('input', { type: 'time', step: stepSec, value: pre.end || '' });
+  const lenNote = h('div', { class: 'muted', style: 'font-size:.85rem;margin-top:6px' });
+  const updateLen = () => {
+    if (!start.value || !end.value) { lenNote.textContent = ''; return; }
+    let d = minutes(end.value) - minutes(start.value);
+    if (d <= 0) d += 1440;
+    lenNote.textContent = `${hoursLabel(d / 60)}${minutes(end.value) <= minutes(start.value) ? ' (ends after midnight)' : ''}`;
+  };
+  start.addEventListener('input', updateLen);
+  end.addEventListener('input', updateLen);
+  updateLen();
   const name = h('input', { type: 'text', maxlength: 60 });
   const phone = h('input', { type: 'tel', maxlength: 20, placeholder: 'optional' });
   const notes = h('input', { type: 'text', maxlength: 300 });
@@ -385,13 +383,10 @@ function openNewModal(pre = {}) {
   const form = h('form', { class: 'modal', novalidate: true, onsubmit: async (e) => {
     e.preventDefault();
     err.classList.add('hidden');
-    const i = starts.indexOf(start.value);
-    const n = parseInt(dur.value, 10);
-    const slots = starts.slice(i, i + n);
-    if (slots.length < n) { err.textContent = 'That runs past closing time. Choose a shorter duration.'; err.classList.remove('hidden'); return; }
+    if (!start.value || !end.value) { err.textContent = 'Please choose a start and an end time.'; err.classList.remove('hidden'); return; }
     submit.disabled = true;
     try {
-      await call('/api/admin/bookings', { method: 'POST', body: { type, date: date.value, slots, name: name.value, phone: phone.value, notes: notes.value } });
+      await call('/api/admin/bookings', { method: 'POST', body: { type, date: date.value, start: start.value, end: end.value, name: name.value, phone: phone.value, notes: notes.value } });
       back.remove();
       toast(type === 'block' ? 'Time blocked' : 'Walk-in booking saved', 'ok');
       A.day = date.value;
@@ -406,7 +401,8 @@ function openNewModal(pre = {}) {
   h('div', { class: 'form-grid' },
     h('div', { class: 'field' }, h('label', {}, 'Date'), date),
     h('div', { class: 'field' }, h('label', {}, 'Start time'), start),
-    h('div', { class: 'field' }, h('label', {}, 'Duration'), dur)),
+    h('div', { class: 'field' }, h('label', {}, 'End time'), end)),
+  lenNote,
   h('div', { style: 'height:12px' }), custFields, notesField, err,
   h('div', { class: 'actions' }, h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => back.remove() }, 'Cancel'), submit));
   back.append(form);

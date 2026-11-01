@@ -1,29 +1,68 @@
 'use strict';
 injectChrome('book');
 
-const state = { cfg: null, date: null, slots: [], start: -1, count: 0, loading: false, calendar: [] };
+/*
+ * Free start / end time booking.
+ * The server tells us, for the chosen date, which windows are unavailable (booked / closed / passed)
+ * and which are free. All times here are "minutes from 00:00 of the chosen date" - values above 1440
+ * mean after midnight (the next day).
+ */
+const state = { cfg: null, date: null, av: null, startMin: null, endMin: null, calendar: [] };
 const el = {
   strip: $('#date-strip'), dateInput: $('#date-input'), slotsArea: $('#slots-area'), duration: $('#duration'),
-  durOut: $('#dur-out'), durRange: $('#dur-range'), minus: $('#dur-minus'), plus: $('#dur-plus'), hint: $('#slot-hint'),
+  durRange: $('#dur-range'), durChips: $('#dur-chips'),
   timeAside: $('#time-aside'), pDetails: $('#p-details'), form: $('#form'), submit: $('#submit'), formError: $('#form-error'),
+  tlTrack: $('#tl-track'), tlTicks: $('#tl-ticks'), tlHint: $('#tl-hint'), dayLists: $('#day-lists'),
+  listBooked: $('#list-booked'), listFree: $('#list-free'), pickArea: $('#pick-area'), selStart: $('#sel-start'), selEnd: $('#sel-end'), pickMsg: $('#pick-msg'),
   sumEmpty: $('#sum-empty'), sumList: $('#sum-list'), sumDate: $('#sum-date'), sumTime: $('#sum-time'), sumDur: $('#sum-dur'),
   sumRate: $('#sum-rate'), sumTotal: $('#sum-total'), sumNote: $('#sum-note'),
   bar: $('#mobile-bar'), mbWhen: $('#mb-when'), mbTotal: $('#mb-total'), mbBtn: $('#mb-btn'),
 };
 
-const maxSlots = () => Math.max(1, Math.floor((state.cfg.maxHoursPerBooking * 60) / state.cfg.slotMinutes));
-const hoursOf = (n) => (n * state.cfg.slotMinutes) / 60;
-const isFree = (i) => state.slots[i] && state.slots[i].status === 'available';
+const DAY = 1440;
+const step = () => (state.av && state.av.stepMinutes) || state.cfg.stepMinutes || 15;
+const priceFor = (mins) => Math.round((mins / 60) * state.cfg.pricePerHour);
+
+/** The bookable window (free, long enough) that contains minute `t`, or null. */
+function windowAt(t) {
+  const av = state.av;
+  if (!av) return null;
+  return av.bookable.find((w) => t >= w.start && t < w.end) || null;
+}
+
+/** Every start time the customer may choose (on the step grid, inside a free window, with room for the shortest booking). */
+function validStarts() {
+  const av = state.av;
+  const out = [];
+  if (!av) return out;
+  for (const w of av.bookable) {
+    for (let t = w.start; t + av.minMinutes <= w.end && t < DAY; t += av.stepMinutes) out.push(t);
+  }
+  return out;
+}
+
+/** Every end time allowed for a given start. */
+function validEnds(start) {
+  const av = state.av;
+  const w = windowAt(start);
+  if (!w) return [];
+  const out = [];
+  const limit = Math.min(w.end, start + av.maxMinutes);
+  for (let t = start + av.minMinutes; t <= limit; t += av.stepMinutes) out.push(t);
+  return out;
+}
+
+const spanText = (a, b) => `${fmtMin(a)} – ${fmtEndMin(b)}`;
 
 /* ---------------- dates ---------------- */
 function renderDates() {
   el.strip.innerHTML = '';
   for (const d of state.calendar) {
     let dot = '';
-    let label = `${longDate(d.date)}, ${d.available} slots available`;
+    let label = `${longDate(d.date)}, ${hoursLabel(d.freeMinutes / 60)} available`;
     if (d.closed) { dot = 'closed'; label = `${longDate(d.date)}, closed`; }
-    else if (d.available === 0) { dot = 'full'; label = `${longDate(d.date)}, fully booked`; }
-    else if (d.available <= 3) dot = 'few';
+    else if (d.freeMinutes === 0) { dot = 'full'; label = `${longDate(d.date)}, fully booked`; }
+    else if (d.freeMinutes <= 180) dot = 'few'; // 3 hours or less left
     const chip = h('button', {
       type: 'button', class: `date-chip${d.date === state.date ? ' selected' : ''}`, role: 'option',
       'aria-selected': String(d.date === state.date), 'aria-label': label, disabled: d.closed,
@@ -41,176 +80,221 @@ async function loadCalendar() {
   state.calendar = data.days;
 }
 
-async function selectDate(date, { keepSelection = false } = {}) {
+async function selectDate(date) {
   state.date = date;
   el.dateInput.value = date;
-  if (!keepSelection) { state.start = -1; state.count = 0; }
+  state.startMin = null;
+  state.endMin = null;
   if (!state.calendar.some((d) => d.date === date)) {
     // a date beyond the strip: show it as an extra chip at the end
-    state.calendar.push({ date, closed: false, available: 99, total: 99 });
+    state.calendar.push({ date, closed: false, freeMinutes: 1440 });
     state.calendar.sort((a, b) => a.date.localeCompare(b.date));
   }
   renderDates();
-  await loadSlots();
+  await loadDay();
 }
 
-async function loadSlots({ silent = false } = {}) {
+async function loadDay({ silent = false } = {}) {
   if (!silent) {
     el.slotsArea.innerHTML = '';
-    const grid = h('div', { class: 'slots' });
-    for (let i = 0; i < 8; i++) grid.append(h('div', { class: 'skeleton' }));
-    el.slotsArea.append(grid);
+    el.slotsArea.append(h('div', { class: 'skeleton' }));
+    el.pickArea.classList.add('hidden');
+    el.dayLists.classList.add('hidden');
   }
   try {
-    const data = await api(`/api/availability?date=${state.date}`);
-    const before = state.start >= 0 ? state.slots.slice(state.start, state.start + state.count).map((s) => s.start) : [];
-    state.slots = data.slots;
-    // if someone else took our selected slot in the meantime, clear the selection
-    if (before.length) {
-      const idx = state.slots.findIndex((s) => s.start === before[0]);
-      const stillOk = idx >= 0 && before.every((_, k) => isFree(idx + k));
-      if (!stillOk) { state.start = -1; state.count = 0; toast('A slot you selected was just booked by someone else. Please choose again.', 'error'); }
+    const av = await api(`/api/availability?date=${state.date}`);
+    state.av = av;
+    // if someone else took the time we had selected in the meantime, clear the selection
+    if (state.startMin != null && !selectionIsValid()) {
+      state.startMin = null; state.endMin = null;
+      toast('That time was just booked by someone else. Please choose again.', 'error');
     }
-    // refresh the dot for this date
     const cal = state.calendar.find((d) => d.date === state.date);
-    if (cal) { cal.available = state.slots.filter((s) => s.status === 'available').length; cal.closed = data.closed; renderDates(); }
-    renderSlots(data);
+    if (cal) { cal.freeMinutes = av.freeMinutes; cal.closed = av.closed; renderDates(); }
+    renderDay();
   } catch (err) {
+    state.av = null;
     el.slotsArea.innerHTML = '';
-    el.slotsArea.append(h('div', { class: 'slots-empty' }, err.message, ' ', h('button', { class: 'btn btn-sm btn-ghost', type: 'button', onclick: () => loadSlots() }, 'Retry')));
+    el.slotsArea.append(h('div', { class: 'slots-empty' }, err.message, ' ', h('button', { class: 'btn btn-sm btn-ghost', type: 'button', onclick: () => loadDay() }, 'Retry')));
   }
   renderSummary();
 }
 
-/* ---------------- slots ---------------- */
-function periodOf(start) {
-  const m = minutes(start);
-  if (m < 6 * 60) return ['Night', 'moon'];
-  if (m < 12 * 60) return ['Morning', 'sun'];
-  if (m < 17 * 60) return ['Afternoon', 'sunset'];
-  return ['Evening', 'moon'];
+function selectionIsValid() {
+  if (state.startMin == null || state.endMin == null) return false;
+  return validStarts().includes(state.startMin) && validEnds(state.startMin).includes(state.endMin);
 }
 
-function renderSlots(data) {
-  el.slotsArea.innerHTML = '';
-  const free = state.slots.filter((s) => s.status === 'available').length;
-  el.timeAside.textContent = data && data.closed ? 'Closed' : `${free} slot${free === 1 ? '' : 's'} free`;
-  if (data && data.closed) {
-    el.slotsArea.append(h('div', { class: 'slots-empty' }, 'The arena is closed on this date. Please choose another day.'));
-    return;
+/* ---------------- day view: timeline, lists, pickers ---------------- */
+function renderTicks() {
+  el.tlTicks.innerHTML = '';
+  for (let hr = 0; hr <= 24; hr += 3) el.tlTicks.append(h('span', { class: hr % 6 ? 'minor' : '', style: `left:${(hr / 24) * 100}%` }, fmtMin(hr * 60).replace(':00', '')));
+}
+
+const pct = (m) => (Math.min(Math.max(m, 0), DAY) / DAY) * 100;
+
+function renderTimeline() {
+  const av = state.av;
+  el.tlTrack.innerHTML = '';
+  el.tlTrack.classList.toggle('is-empty', !av.bookable.length);
+  for (const w of av.unavailable) {
+    if (w.start >= DAY) continue;
+    const left = pct(w.start);
+    const width = pct(w.end) - left;
+    const title = w.kind === 'booked' ? `Booked ${spanText(w.start, w.end)}` : w.kind === 'past' ? 'Already passed' : 'Closed';
+    const seg = h('div', { class: `tl-seg ${w.kind}`, style: `left:${left}%;width:${width}%`, title }, width > 9 ? (w.kind === 'booked' ? 'Booked' : w.kind === 'past' ? 'Passed' : 'Closed') : '');
+    el.tlTrack.append(seg);
   }
-  if (!state.slots.length) {
-    el.slotsArea.append(h('div', { class: 'slots-empty' }, 'No slots available for this date.'));
-    return;
+  if (state.startMin != null && state.endMin != null) {
+    const left = pct(state.startMin);
+    const width = pct(state.endMin) - left;
+    const over = state.endMin > DAY;
+    el.tlTrack.append(h('div', { class: `tl-sel${over ? ' over' : ''}`, style: `left:${left}%;width:${width}%` }, width > 12 ? hoursLabel((state.endMin - state.startMin) / 60) : ''));
   }
-  if (free === 0) el.slotsArea.append(h('div', { class: 'slots-empty', style: 'margin-bottom:16px' }, 'This day is fully booked or has passed. Try another date.'));
-  const groups = new Map();
-  state.slots.forEach((s, i) => {
-    const [name, icon] = periodOf(s.start);
-    if (!groups.has(name)) groups.set(name, { icon, items: [] });
-    groups.get(name).items.push(i);
-  });
-  for (const [name, g] of groups) {
-    const grid = h('div', { class: 'slots', role: 'group', 'aria-label': `${name} slots` });
-    for (const i of g.items) {
-      const s = state.slots[i];
-      const selected = state.start >= 0 && i >= state.start && i < state.start + state.count;
-      const unavailable = s.status !== 'available';
-      const sub = s.status === 'booked' ? 'Booked' : s.status === 'past' ? 'Passed' : s.status === 'closed' ? 'Closed' : `to ${fmt12(s.end)}`;
-      const btn = h('button', {
-        type: 'button', class: `slot${selected ? ' selected' : ''}${s.status === 'booked' ? ' booked' : ''}`,
-        disabled: unavailable, 'aria-pressed': String(selected),
-        'aria-label': `${fmt12(s.start)} to ${fmt12(s.end)}, ${unavailable ? s.status : selected ? 'selected' : 'available'}`,
-        onclick: () => onSlot(i),
-      }, h('span', { class: 't' }, fmt12(s.start)), h('span', { class: 's' }, sub));
-      btn.dataset.i = String(i);
-      grid.append(btn);
+}
+
+function renderLists() {
+  const av = state.av;
+  el.listBooked.innerHTML = '';
+  el.listFree.innerHTML = '';
+  const booked = av.unavailable.filter((w) => w.kind === 'booked' && w.start < DAY);
+  if (!booked.length) el.listBooked.append(h('li', { class: 'none', style: 'background:none;padding:0;font-weight:400;color:var(--muted)' }, 'Nothing booked yet'));
+  for (const w of booked) el.listBooked.append(h('li', {}, spanText(w.start, w.end)));
+  if (!av.bookable.length) el.listFree.append(h('li', { style: 'background:none;padding:0;font-weight:400;color:var(--muted)' }, 'No free time left'));
+  for (const w of av.bookable) {
+    // show where the free time stops; free time that runs on into the next morning is shown up to midnight
+    const end = w.end >= 2 * DAY ? DAY : w.end;
+    el.listFree.append(h('li', {}, w.start <= 0 && end >= DAY ? 'Whole day (24 hours)' : spanText(w.start, end)));
+  }
+}
+
+function renderPickers() {
+  const av = state.av;
+  const starts = validStarts();
+  el.pickArea.classList.toggle('hidden', !starts.length);
+  if (!starts.length) return;
+  // start box
+  el.selStart.innerHTML = '';
+  el.selStart.append(h('option', { value: '' }, 'Choose start…'));
+  for (const t of starts) el.selStart.append(h('option', { value: String(t), selected: t === state.startMin }, fmtMin(t)));
+  el.selStart.value = state.startMin == null ? '' : String(state.startMin);
+  // end box
+  el.selEnd.innerHTML = '';
+  if (state.startMin == null) {
+    el.selEnd.disabled = true;
+    el.selEnd.append(h('option', { value: '' }, 'Pick a start first'));
+  } else {
+    el.selEnd.disabled = false;
+    el.selEnd.append(h('option', { value: '' }, 'Choose end…'));
+    for (const t of validEnds(state.startMin)) {
+      el.selEnd.append(h('option', { value: String(t), selected: t === state.endMin }, `${fmtEndMin(t)} · ${hoursLabel((t - state.startMin) / 60)}`));
     }
-    const title = h('h3', {}, h('span', { html: ICONS[g.icon] }), name);
-    el.slotsArea.append(h('div', { class: 'period' }, title, grid));
+    el.selEnd.value = state.endMin == null ? '' : String(state.endMin);
   }
+  // message
+  el.pickMsg.classList.remove('bad');
+  if (state.startMin == null) el.pickMsg.textContent = `Shortest booking ${hoursLabel(av.minMinutes / 60)}, longest ${hoursLabel(av.maxMinutes / 60)}. Finish after midnight? Choose an end time marked “(next day)”.`;
+  else if (state.endMin == null) el.pickMsg.textContent = 'Now choose the time you want to finish.';
+  else el.pickMsg.textContent = '';
+  renderQuickLengths();
 }
 
-function rangeFree(a, b) {
-  for (let k = a; k <= b; k++) if (!isFree(k)) return false;
-  return true;
-}
-
-function onSlot(i) {
-  const keyboardUser = !!(document.activeElement && document.activeElement.matches && document.activeElement.matches(':focus-visible'));
-  const max = maxSlots();
-  const s0 = state.start;
-  const n = state.count;
-  if (s0 < 0) { state.start = i; state.count = 1; }
-  else if (i >= s0 && i < s0 + n) {
-    if (n === 1 && i === s0) { state.start = -1; state.count = 0; }
-    else state.count = i - s0 + 1;
-  } else if (i > s0 + n - 1) {
-    const need = i - s0 + 1;
-    if (need <= max && rangeFree(s0, i)) state.count = need;
-    else if (need > max && rangeFree(s0, i)) { toast(`Maximum ${state.cfg.maxHoursPerBooking} hours per booking.`); state.start = i; state.count = 1; }
-    else { state.start = i; state.count = 1; }
-  } else { // i < s0
-    const need = s0 + n - i;
-    if (need <= max && rangeFree(i, s0 + n - 1)) { state.start = i; state.count = need; }
-    else { state.start = i; state.count = 1; }
+function renderQuickLengths() {
+  const av = state.av;
+  const show = state.startMin != null;
+  el.duration.classList.toggle('hidden', !show);
+  if (!show) return;
+  el.durRange.textContent = state.endMin != null ? `· ${spanText(state.startMin, state.endMin)}` : '';
+  el.durChips.innerHTML = '';
+  const ends = validEnds(state.startMin);
+  for (const t of ends) {
+    const len = t - state.startMin;
+    if (len % 30) continue; // quick chips every 30 minutes; exact 15-minute ends are in the End box
+    const on = t === state.endMin;
+    el.durChips.append(h('button', {
+      type: 'button', class: `dchip${on ? ' on' : ''}`, 'aria-pressed': String(on),
+      onclick: () => { state.endMin = t; renderDay(); renderSummary(); },
+    }, h('b', {}, hoursLabel(len / 60)), h('small', {}, fmtMoney(priceFor(len), state.cfg.currency))));
   }
-  renderSlots();
-  renderSummary();
-  // the grid is redrawn on every tap: put keyboard focus back on the slot that was used
-  const again = $(`.slot[data-i="${i}"]`);
-  if (keyboardUser && again && !again.disabled) again.focus({ preventScroll: true });
+  if (!el.durChips.children.length) el.duration.classList.add('hidden');
 }
 
-el.plus.addEventListener('click', () => {
-  if (state.start < 0) return;
-  const next = state.start + state.count;
-  if (state.count >= maxSlots()) return toast(`Maximum ${state.cfg.maxHoursPerBooking} hours per booking.`);
-  if (!isFree(next)) return toast('The next slot is not available.', 'error');
-  state.count++;
-  renderSlots(); renderSummary();
+function renderDay() {
+  const av = state.av;
+  el.slotsArea.innerHTML = '';
+  renderTicks();
+  el.timeAside.textContent = av.closed ? 'Closed' : `${hoursLabel(av.freeMinutes / 60)} free`;
+  if (av.closed) {
+    el.slotsArea.append(h('div', { class: 'slots-empty' }, 'The arena is closed on this date. Please choose another day.'));
+  } else if (!av.bookable.length) {
+    el.slotsArea.append(h('div', { class: 'slots-empty', style: 'margin-bottom:16px' }, 'No free time on this date — it is fully booked or has passed. Try another date.'));
+  }
+  el.dayLists.classList.toggle('hidden', av.closed);
+  renderTimeline();
+  if (!av.closed) renderLists();
+  renderPickers();
+}
+
+/** Tap the timeline: choose that spot as the start time (snapped to the step, inside the nearest free time). */
+el.tlTrack.addEventListener('click', (e) => {
+  if (!state.av || !state.av.bookable.length) return;
+  const rect = el.tlTrack.getBoundingClientRect();
+  const raw = ((e.clientX - rect.left) / rect.width) * DAY;
+  const st = step();
+  let t = Math.min(DAY - st, Math.max(0, Math.floor(raw / st) * st));
+  const starts = validStarts();
+  if (!starts.includes(t)) {
+    // tapped on a booked / closed part, or too close to the end of a free window: say so instead of failing silently
+    const nearest = starts.reduce((best, s) => (best == null || Math.abs(s - raw) < Math.abs(best - raw) ? s : best), null);
+    if (nearest == null || Math.abs(nearest - raw) > 90) return toast('That part of the day is not available. Tap a green area.', 'error');
+    t = nearest;
+  }
+  setStart(t);
 });
-el.minus.addEventListener('click', () => {
-  if (state.start < 0 || state.count <= 1) return;
-  state.count--;
-  renderSlots(); renderSummary();
+
+function setStart(t) {
+  state.startMin = t;
+  const ends = validEnds(t);
+  if (!ends.includes(state.endMin)) state.endMin = ends.length ? ends[0] : null; // default: the shortest booking
+  renderDay();
+  renderSummary();
+}
+
+el.selStart.addEventListener('change', () => {
+  if (el.selStart.value === '') { state.startMin = null; state.endMin = null; renderDay(); renderSummary(); return; }
+  setStart(parseInt(el.selStart.value, 10));
+});
+el.selEnd.addEventListener('change', () => {
+  state.endMin = el.selEnd.value === '' ? null : parseInt(el.selEnd.value, 10);
+  renderDay();
+  renderSummary();
 });
 
 /* ---------------- summary ---------------- */
 function currentSelection() {
-  if (state.start < 0 || !state.slots[state.start]) return null;
-  const first = state.slots[state.start];
-  const last = state.slots[state.start + state.count - 1];
-  const hrs = hoursOf(state.count);
-  return { first, last, hrs, total: Math.round(hrs * state.cfg.pricePerHour) };
+  if (state.startMin == null || state.endMin == null || !state.av || !selectionIsValid()) return null;
+  const mins = state.endMin - state.startMin;
+  return { mins, hrs: mins / 60, total: priceFor(mins), range: spanText(state.startMin, state.endMin) };
 }
 
 function renderSummary() {
   const sel = currentSelection();
   const cur = state.cfg.currency;
   el.pDetails.classList.toggle('locked', !sel);
-  el.duration.classList.toggle('hidden', !sel);
   el.sumEmpty.classList.toggle('hidden', !!sel);
   el.sumList.classList.toggle('hidden', !sel);
   document.body.classList.toggle('has-bar', !!sel);
   el.bar.classList.toggle('show', !!sel);
   if (!sel) {
     el.sumTotal.textContent = fmtMoney(0, cur);
-    el.hint.classList.remove('hidden');
     return;
   }
-  el.hint.classList.add('hidden');
-  const range = `${fmt12(sel.first.start)} – ${fmt12(sel.last.end)}`;
-  el.durOut.textContent = hoursLabel(sel.hrs);
-  el.durRange.textContent = range;
-  el.minus.disabled = state.count <= 1;
-  el.plus.disabled = state.count >= maxSlots() || !isFree(state.start + state.count);
   el.sumDate.textContent = mediumDate(state.date);
-  el.sumTime.textContent = range;
+  el.sumTime.textContent = sel.range;
   el.sumDur.textContent = hoursLabel(sel.hrs);
   el.sumRate.textContent = `${fmtMoney(state.cfg.pricePerHour, cur)} / hour`;
   el.sumTotal.textContent = fmtMoney(sel.total, cur);
-  el.mbWhen.textContent = `${mediumDate(state.date)} · ${range}`;
+  el.mbWhen.textContent = `${mediumDate(state.date)} · ${sel.range}`;
   el.mbTotal.textContent = fmtMoney(sel.total, cur);
 }
 
@@ -244,7 +328,6 @@ el.form.addEventListener('submit', async (e) => {
   if (!sel) return toast('Please choose a time first.', 'error');
   if (!validate()) return;
   const f = el.form.elements;
-  const slots = state.slots.slice(state.start, state.start + state.count).map((s) => s.start);
   el.submit.disabled = true;
   el.mbBtn.disabled = true;
   const label = el.submit.textContent;
@@ -253,7 +336,7 @@ el.form.addEventListener('submit', async (e) => {
   try {
     const res = await api('/api/bookings', {
       method: 'POST',
-      body: { date: state.date, slots, name: f.name.value, phone: f.phone.value, email: f.email.value, players: f.players.value, notes: f.notes.value },
+      body: { date: state.date, start: hhmm(state.startMin), end: hhmm(state.endMin), name: f.name.value, phone: f.phone.value, email: f.email.value, players: f.players.value, notes: f.notes.value },
     });
     try {
       localStorage.setItem('hz_contact', JSON.stringify({ name: f.name.value, phone: f.phone.value, email: f.email.value }));
@@ -267,10 +350,10 @@ el.form.addEventListener('submit', async (e) => {
     if (err.field && el.form.elements[err.field]) setErr(err.field, err.message);
     el.formError.textContent = err.message;
     el.formError.classList.remove('hidden');
-    if (err.status === 409 || err.field === 'slots') {
-      state.start = -1; state.count = 0;
-      await loadSlots();
-      el.slotsArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (err.status === 409 || err.field === 'start' || err.field === 'end') {
+      state.startMin = null; state.endMin = null;
+      await loadDay();
+      $('#p-time').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 });
@@ -302,9 +385,9 @@ el.mbBtn.addEventListener('click', () => {
     await loadCalendar();
     const wanted = new URLSearchParams(location.search).get('date');
     const first = (wanted && /^\d{4}-\d{2}-\d{2}$/.test(wanted) && wanted >= state.cfg.today && wanted <= state.cfg.lastBookableDate && wanted)
-      || (state.calendar.find((d) => !d.closed && d.available > 0) || state.calendar[0] || { date: state.cfg.today }).date;
+      || (state.calendar.find((d) => !d.closed && d.freeMinutes > 0) || state.calendar[0] || { date: state.cfg.today }).date;
     await selectDate(first);
-    setInterval(() => { if (!document.hidden && state.date) loadSlots({ silent: true }); }, 60000);
+    setInterval(() => { if (!document.hidden && state.date) loadDay({ silent: true }); }, 60000);
   } catch (err) {
     el.slotsArea.append(h('div', { class: 'slots-empty' }, err.message));
   }

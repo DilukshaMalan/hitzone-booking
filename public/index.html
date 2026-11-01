@@ -48,8 +48,8 @@
           <div class="rule"></div>
         </div>
         <div class="steps">
-          <div class="step"><h3>Pick a date</h3><p>Browse the next few weeks. A green dot means plenty of space; red means that day is full.</p></div>
-          <div class="step"><h3>Choose your time</h3><p>Tap a start time and add as many back-to-back hours as you need. The total updates instantly.</p></div>
+          <div class="step"><h3>Pick a date</h3><p>Browse the next few weeks. A green dot means plenty of space; red means that day is full. A colour bar shows what is already booked.</p></div>
+          <div class="step"><h3>Choose your time</h3><p>See the free and booked times, then pick your own start and finish — 3:00 PM to 5:30 PM, or any time you like. The price updates instantly.</p></div>
           <div class="step"><h3>Get your QR receipt</h3><p>Send your request, we confirm it, and your receipt with a QR code is ready to show at the arena.</p></div>
         </div>
         <p class="center" style="margin-top:36px"><a class="btn btn-dark" href="/book.html">Check available times</a></p>
@@ -87,8 +87,8 @@
             <div class="amount" data-bind="price">LKR 5,500</div>
             <div class="per">per hour</div>
             <ul>
-              <li>Book 1 to <span data-bind="maxHours">4</span> hours at a time</li>
-              <li>Pick any free back-to-back slots</li>
+              <li>Any start time, any length — <span data-bind="minBooking">1 hour</span> up to <span data-bind="maxHours">4</span> hours</li>
+              <li>Pick any start and finish time (every 15 minutes) — e.g. 3:00 to 5:30 PM</li>
               <li>Instant online receipt with QR code</li>
             </ul>
             <div><a class="btn" href="/book.html">Book your slot</a></div>
@@ -130,7 +130,7 @@
             <p>Early-morning nets before work, a lunchtime match with friends or a midnight session with the team — every hour of the day can be booked, every day.</p>
             <ul class="ticks">
               <li>Book any hour, 24 hours a day</li>
-              <li>Back-to-back slots for longer sessions</li>
+              <li>Choose your own start and finish time</li>
               <li>Indoor arena — rain or shine</li>
             </ul>
             <p><a class="btn" href="/book.html">Book any hour</a></p>
@@ -162,6 +162,7 @@
         price: fmtMoney(c.pricePerHour, c.currency),
         hours: hoursText(c),
         maxHours: String(c.maxHoursPerBooking),
+        minBooking: hoursLabel(c.minBookingMinutes / 60),
         payment: c.paymentNote,
       };
       $$('[data-bind]').forEach((el) => { if (map[el.dataset.bind] != null) el.textContent = map[el.dataset.bind]; });

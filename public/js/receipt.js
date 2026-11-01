@@ -32,12 +32,10 @@ function renderLookup(message) {
 function icsFor(b, cfg) {
   const d = b.date.replace(/-/g, '');
   const t = (x) => x.replace(':', '') + '00';
-  let endDay = d;
-  let endTime = t(b.end);
-  if (b.end === '24:00') { // ends at midnight -> next day 00:00
-    const nd = new Date(`${b.date}T00:00:00Z`); nd.setUTCDate(nd.getUTCDate() + 1);
-    endDay = nd.toISOString().slice(0, 10).replace(/-/g, ''); endTime = '000000';
-  }
+  const endMin = minutes(b.end); // can be 1440 (midnight) or more (next day)
+  const nd = new Date(`${b.date}T00:00:00Z`); nd.setUTCDate(nd.getUTCDate() + Math.floor(endMin / 1440));
+  const endDay = nd.toISOString().slice(0, 10).replace(/-/g, '');
+  const endTime = t(hhmm(endMin % 1440));
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   const lines = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//HITZONE//Booking//EN', 'BEGIN:VEVENT',
@@ -67,7 +65,7 @@ async function renderTicket(b, cfg) {
         row('Reference', b.ref, 'ref'),
         row('Name', b.name),
         row('Date', longDate(b.date)),
-        row('Time', `${fmt12(b.start)} – ${fmt12(b.end)}`),
+        row('Time', fmtRange(b.start, b.end)),
         row('Duration', hoursLabel(b.hours)),
         b.players > 1 ? row('Players', String(b.players)) : null,
         b.phone ? row('Phone', b.phone) : null,
@@ -86,7 +84,7 @@ async function renderTicket(b, cfg) {
       const a = h('a', { href: URL.createObjectURL(icsFor(b, cfg)), download: `hitzone-${b.ref}.ics` });
       document.body.append(a); a.click(); a.remove();
     } }, 'Add to calendar'));
-    const msg = `My HITZONE booking ${b.ref}: ${longDate(b.date)}, ${fmt12(b.start)} - ${fmt12(b.end)}. Receipt: ${location.origin}/receipt.html?ref=${b.ref}`;
+    const msg = `My HITZONE booking ${b.ref}: ${longDate(b.date)}, ${fmtRange(b.start, b.end)}. Receipt: ${location.origin}/receipt.html?ref=${b.ref}`;
     actions.append(h('a', { class: 'btn btn-ghost', target: '_blank', rel: 'noopener', href: `https://wa.me/?text=${encodeURIComponent(msg)}` }, 'Share on WhatsApp'));
   }
   actions.append(h('a', { class: 'btn btn-ghost', href: '/book.html' }, b.status === 'declined' || b.status === 'cancelled' ? 'Choose another time' : 'Book another slot'));
