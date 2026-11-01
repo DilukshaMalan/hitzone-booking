@@ -100,6 +100,13 @@ const ICONS = {
   sunset: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0M12 9V2M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M23 22H1M16 5l-4 4-4-4"/></svg>',
   clock: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   pin: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  timeline: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M8 8v8M14 8v8M3 4v2M21 4v2M12 4v2"/></svg>',
+  qr: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v3M14 21h3M21 21h0"/></svg>',
+  roof: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8M5 10v10h14V10M9 20v-5h6v5"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8 14l3 3 5-6"/></svg>',
+  rain: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.6-7.95A6 6 0 0 1 18 9a4.5 4.5 0 0 1 .5 9H7z"/><path d="M9 21l1-2M13 21l1-2"/></svg>',
+  light: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+  ball: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5 7.5c3 1.5 5 4 5.5 9M19 7.5c-3 1.5-5 4-5.5 9"/></svg>',
   card: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
 };
 
@@ -113,12 +120,25 @@ function injectChrome(active) {
         h('a', { class: 'brand', href: '/', 'aria-label': 'HITZONE home' },
           h('img', { src: '/images/favicon.svg', alt: '', width: 38, height: 38 }),
           h('span', { class: 'brand-text' }, 'HITZONE', h('span', { class: 'brand-sub' }, 'INDOOR CRICKET ARENA'))),
-        h('nav', { class: 'nav', 'aria-label': 'Main' },
+        h('nav', { class: 'nav', id: 'main-nav', 'aria-label': 'Main' },
           h('a', { href: '/#how', class: active === 'home' ? 'active' : '' }, 'How it works'),
           h('a', { href: '/#pricing' }, 'Pricing'),
           h('a', { href: '/#gallery' }, 'Gallery'),
           h('a', { href: '/receipt.html', class: active === 'receipt' ? 'active' : '' }, 'My booking'),
-          h('a', { href: '/book.html', class: 'btn' }, 'Book now'))));
+          h('a', { href: '/book.html', class: 'btn' }, 'Book now')),
+        h('div', { class: 'header-right' },
+          h('a', { href: '/book.html', class: 'btn nav-book' }, 'Book now'),
+          h('button', { class: 'nav-toggle', type: 'button', 'aria-label': 'Menu', 'aria-expanded': 'false', 'aria-controls': 'mobile-menu', onclick: (e) => {
+            const open = $('#mobile-menu').classList.toggle('open');
+            e.currentTarget.setAttribute('aria-expanded', String(open));
+          } }, h('span', {}))),
+        h('div', { class: 'mobile-menu', id: 'mobile-menu' },
+          h('a', { href: '/#how' }, 'How it works'),
+          h('a', { href: '/#pricing' }, 'Pricing'),
+          h('a', { href: '/#gallery' }, 'Gallery'),
+          h('a', { href: '/receipt.html' }, 'My booking'),
+          h('a', { href: '/#contact' }, 'Contact'))));
+    $$('#mobile-menu a').forEach((a) => a.addEventListener('click', () => { $('#mobile-menu').classList.remove('open'); $('.nav-toggle').setAttribute('aria-expanded', 'false'); }));
   }
   const footer = $('#site-footer');
   if (footer) {

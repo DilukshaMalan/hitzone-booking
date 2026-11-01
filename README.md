@@ -64,7 +64,7 @@ Run it on a computer/server that stays on and put it behind a domain (e.g. a sma
 
 ## 7. Check the contact details
 
-Open Admin → Settings and fill in your **phone, WhatsApp, address and map link** – they appear on the website. The site is set up as **open 24 hours** (Settings → *Open 24 hours*). Pictures in `public/images/` are illustrations; swap in real photos of the arena any time (keep the file names).
+Open Admin → Settings and fill in your **phone, WhatsApp, address and map link** – they appear on the website. The site is set up as **open 24 hours** (Settings → *Open 24 hours*). The website uses real photos of your court (`public/images/court-lane.jpg`, `court-hall.jpg` and crops of them). To change a picture, replace the file and keep the same name.
 
 ## Project layout
 

@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>document.documentElement.classList.add('js');</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HITZONE Indoor Cricket Arena — Book your slot online</title>
@@ -13,7 +14,8 @@
   <link rel="stylesheet" href="/css/style.css">
   <meta property="og:title" content="HITZONE Indoor Cricket Arena">
   <meta property="og:description" content="Come. Play. Hit. Repeat. Book your indoor cricket slot online.">
-  <meta property="og:image" content="/images/logo.png">
+  <meta property="og:image" content="/images/og-court.jpg">
+  <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
   <div id="site-header"></div>
@@ -21,54 +23,76 @@
   <main>
     <!-- HERO -->
     <section class="hero">
-      <div class="container">
-        <div class="eyebrow">You are warmly invited</div>
-        <img class="hero-logo" src="/images/logo.png" alt="HITZONE" width="676" height="255">
-        <div class="sub">Indoor Cricket Arena</div>
-        <div class="words">Play <i>•</i> Practice <i>•</i> Compete <i>•</i> Enjoy</div>
-        <p class="lead">A premium indoor cricket facility built for cricket lovers — rain or shine, the game goes on. Pick your time and book your slot in under a minute.</p>
-        <div class="hero-cta">
-          <a class="btn" href="/book.html">Book your slot</a>
-          <a class="btn btn-light-ghost" href="#how">How it works</a>
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live"></span>Now open &middot; 24 hours a day</div>
+          <img class="hero-logo" src="/images/logo.png" alt="HITZONE" width="676" height="255">
+          <div class="sub">Indoor Cricket Arena</div>
+          <div class="words">Play <i>&bull;</i> Practice <i>&bull;</i> Compete <i>&bull;</i> Enjoy</div>
+          <p class="lead">A premium indoor cricket facility built for cricket lovers &mdash; rain or shine, the game goes on. Choose your own start and finish time and book your court in under a minute.</p>
+          <div class="hero-cta">
+            <a class="btn" href="/book.html">Book your court</a>
+            <a class="btn btn-light-ghost" href="#gallery">See the arena</a>
+          </div>
+          <ul class="hero-facts">
+            <li><b data-bind="price">LKR 5,500</b>per hour</li>
+            <li><b data-bind="hours">24 hours</b>every day</li>
+            <li><b>Any time</b>you choose start &amp; finish</li>
+          </ul>
         </div>
-        <div class="hero-chips">
-          <span class="chip"><b data-bind="price">LKR 5,500</b> per hour</span>
-          <span class="chip">Open <b data-bind="hours">24 hours</b></span>
-          <span class="chip">Instant QR receipt</span>
+        <div class="hero-photos">
+          <figure class="hp-main"><img src="/images/court-lane.jpg" alt="The HITZONE indoor cricket lane with blue pitch mat, stumps and green turf" width="960" height="1280" fetchpriority="high"></figure>
+          <figure class="hp-side"><img src="/images/crop-roof.jpg" alt="Bright lights under the arena roof" width="960" height="580"></figure>
+          <div class="hp-badge"><b data-bind="price">LKR 5,500</b><span>per hour &middot; instant QR receipt</span></div>
         </div>
       </div>
     </section>
 
+    <!-- TRUST BAR -->
+    <div class="trust">
+      <div class="container">
+        <div class="trust-grid reveal">
+          <div class="trust-item"><div class="ico" data-icon="clock"></div><div><b>Open 24 hours</b><span>Early nets to midnight matches</span></div></div>
+          <div class="trust-item"><div class="ico" data-icon="timeline"></div><div><b>Pick any time</b><span>Live free &amp; booked view</span></div></div>
+          <div class="trust-item"><div class="ico" data-icon="qr"></div><div><b>Instant QR receipt</b><span>Show it at the front desk</span></div></div>
+          <div class="trust-item"><div class="ico" data-icon="roof"></div><div><b>Any weather</b><span>Fully covered indoor arena</span></div></div>
+        </div>
+      </div>
+    </div>
+
     <!-- HOW IT WORKS -->
     <section class="section" id="how">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <div class="eyebrow">Simple &amp; quick</div>
           <h2>Book in three easy steps</h2>
           <div class="rule"></div>
         </div>
         <div class="steps">
-          <div class="step"><h3>Pick a date</h3><p>Browse the next few weeks. A green dot means plenty of space; red means that day is full. A colour bar shows what is already booked.</p></div>
-          <div class="step"><h3>Choose your time</h3><p>See the free and booked times, then pick your own start and finish — 3:00 PM to 5:30 PM, or any time you like. The price updates instantly.</p></div>
-          <div class="step"><h3>Get your QR receipt</h3><p>Send your request, we confirm it, and your receipt with a QR code is ready to show at the arena.</p></div>
+          <div class="step reveal"><div class="s-ico" data-icon="calendar"></div><h3>Pick a date</h3><p>Browse the next few weeks. A green dot means plenty of space; red means that day is full.</p></div>
+          <div class="step reveal d1"><div class="s-ico" data-icon="timeline"></div><h3>Choose your time</h3><p>See what is free and what is already booked, then pick your own start and finish &mdash; 3:00 PM to 5:30 PM, or any time you like. The price updates instantly.</p></div>
+          <div class="step reveal d2"><div class="s-ico" data-icon="qr"></div><h3>Get your QR receipt</h3><p>Send your request, we confirm it, and your receipt with a QR code is ready to show at the arena.</p></div>
         </div>
-        <p class="center" style="margin-top:36px"><a class="btn btn-dark" href="/book.html">Check available times</a></p>
+        <p class="center reveal" style="margin-top:40px"><a class="btn btn-dark" href="/book.html">Check available times</a></p>
       </div>
     </section>
 
-    <!-- FEATURES -->
+    <!-- WHY HITZONE -->
     <section class="section dark">
-      <div class="container">
-        <div class="section-head">
-          <div class="eyebrow" style="color:var(--gold-3)">Why HITZONE</div>
-          <h2>Made for cricket lovers</h2>
-          <div class="rule"></div>
-        </div>
-        <div class="features">
-          <div class="feature"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.6-7.95A6 6 0 0 1 18 9a4.5 4.5 0 0 1 .5 9H7z"/><path d="M9 21l1-2M13 21l1-2"/></svg><h3>Play in any weather</h3><p>Rain or shine, your session stays on schedule inside our indoor arena.</p></div>
-          <div class="feature"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><h3>Bright floodlit arena</h3><p>Clear, even lighting for a morning net session or a midnight match.</p></div>
-          <div class="feature"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5 7.5c3 1.5 5 4 5.5 9M19 7.5c-3 1.5-5 4-5.5 9"/></svg><h3>Practice or compete</h3><p>Sharpen your skills, train with your team or enjoy a friendly match.</p></div>
-          <div class="feature"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8 14l3 3 5-6"/></svg><h3>Book in seconds</h3><p>No calls or long messages — see live availability and request your slot online.</p></div>
+      <div class="container why">
+        <figure class="why-photo reveal"><img src="/images/crop-turf-net.jpg" alt="Green turf along the blue safety netting inside the arena" loading="lazy" width="540" height="760"></figure>
+        <div>
+          <div class="section-head reveal">
+            <div class="eyebrow" style="color:var(--gold-3)">Why HITZONE</div>
+            <h2>Made for cricket lovers</h2>
+            <div class="rule"></div>
+          </div>
+          <div class="features">
+            <div class="feature reveal"><div data-icon="rain"></div><h3>Play in any weather</h3><p>Rain or shine, your session stays on schedule inside our covered arena.</p></div>
+            <div class="feature reveal d1"><div data-icon="light"></div><h3>Bright, even lighting</h3><p>Clear lighting for a morning net session or a midnight match.</p></div>
+            <div class="feature reveal d2"><div data-icon="ball"></div><h3>Practice or compete</h3><p>Premium turf and a proper pitch mat &mdash; train with your team or enjoy a friendly match.</p></div>
+            <div class="feature reveal d3"><div data-icon="calendar"></div><h3>Book in seconds</h3><p>No calls or long messages &mdash; see live availability and request your time online.</p></div>
+          </div>
         </div>
       </div>
     </section>
@@ -76,27 +100,30 @@
     <!-- PRICING -->
     <section class="section" id="pricing">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <div class="eyebrow">Pricing &amp; hours</div>
           <h2>Simple, honest pricing</h2>
           <div class="rule"></div>
         </div>
         <div class="pricing">
-          <div class="price-card">
+          <div class="price-card reveal">
             <div class="label">Arena booking</div>
             <div class="amount" data-bind="price">LKR 5,500</div>
             <div class="per">per hour</div>
             <ul>
-              <li>Any start time, any length — <span data-bind="minBooking">1 hour</span> up to <span data-bind="maxHours">4</span> hours</li>
-              <li>Pick any start and finish time (every 15 minutes) — e.g. 3:00 to 5:30 PM</li>
+              <li>Any start and finish time &mdash; <span data-bind="minBooking">1 hour</span> up to <span data-bind="maxHours">4</span> hours</li>
+              <li>Pick every 15 minutes &mdash; e.g. 3:00 to 5:30 PM</li>
               <li>Instant online receipt with QR code</li>
             </ul>
-            <div><a class="btn" href="/book.html">Book your slot</a></div>
+            <div><a class="btn" href="/book.html">Book your court</a></div>
           </div>
-          <div class="hours-list">
-            <div class="row"><div class="ico" data-icon="clock"></div><div><b>Opening hours</b><span class="muted" data-bind="hours">24 hours</span></div></div>
-            <div class="row"><div class="ico" data-icon="card"></div><div><b>Payment</b><span class="muted" data-bind="payment">Pay at the arena before you start playing.</span></div></div>
-            <div class="row"><div class="ico" data-icon="sun"></div><div><b>Any weather</b><span class="muted">Indoor arena — rain or shine, your slot is safe.</span></div></div>
+          <div class="reveal d1">
+            <div class="hours-list">
+              <div class="row"><div class="ico" data-icon="clock"></div><div><b>Opening hours</b><span class="muted" data-bind="hours">24 hours</span></div></div>
+              <div class="row"><div class="ico" data-icon="card"></div><div><b>Payment</b><span class="muted" data-bind="payment">Pay at the arena before you start playing.</span></div></div>
+              <div class="row"><div class="ico" data-icon="sun"></div><div><b>Any weather</b><span class="muted">Indoor arena &mdash; rain or shine, your booking is safe.</span></div></div>
+            </div>
+            <div class="guide" style="margin-top:12px"><h3>Price guide</h3><ul id="price-guide"></ul></div>
           </div>
         </div>
       </div>
@@ -105,17 +132,17 @@
     <!-- GALLERY -->
     <section class="section alt" id="gallery">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <div class="eyebrow">Inside the arena</div>
           <h2>Come. Play. Hit. Repeat.</h2>
           <div class="rule"></div>
         </div>
         <div class="gallery">
-          <figure class="g1"><img src="/images/gallery-net-lane.svg" alt="Illustration of a floodlit netted cricket lane" loading="lazy"><figcaption>Floodlit, netted lanes</figcaption></figure>
-          <figure class="g2"><img src="/images/gallery-bat-ball.svg" alt="Illustration of a cricket bat and ball" loading="lazy"><figcaption>Play</figcaption></figure>
-          <figure class="g3"><img src="/images/gallery-scoreboard.svg" alt="Illustration of a digital scoreboard" loading="lazy"><figcaption>Compete</figcaption></figure>
-          <figure class="g4"><img src="/images/gallery-floodlights.svg" alt="Illustration of arena floodlights" loading="lazy"><figcaption>Bright under the lights</figcaption></figure>
-          <figure class="g5"><img src="/images/gallery-stumps-ball.svg" alt="Illustration of golden stumps and a cricket ball" loading="lazy"><figcaption>Practice</figcaption></figure>
+          <figure class="g1 reveal" data-full="/images/court-lane.jpg"><img src="/images/court-lane.jpg" alt="The cricket lane with blue pitch mat and orange stumps" loading="lazy"><figcaption>Your lane, ready to play</figcaption></figure>
+          <figure class="g2 reveal d1" data-full="/images/crop-roof.jpg"><img src="/images/crop-roof.jpg" alt="Roof lights inside the arena" loading="lazy"><figcaption>Bright, even lighting</figcaption></figure>
+          <figure class="g3 reveal d2" data-full="/images/crop-stumps.jpg"><img src="/images/crop-stumps.jpg" alt="Stumps and cone on the blue pitch mat" loading="lazy"><figcaption>Practice &amp; compete</figcaption></figure>
+          <figure class="g4 reveal" data-full="/images/crop-wide.jpg"><img src="/images/crop-wide.jpg" alt="Wide view of the arena floor and netting" loading="lazy"><figcaption>Space to play, rain or shine</figcaption></figure>
+          <figure class="g5 reveal d1" data-full="/images/crop-turf-net.jpg"><img src="/images/crop-turf-net.jpg" alt="Premium turf next to the safety net" loading="lazy"><figcaption>Premium turf &amp; safety net</figcaption></figure>
         </div>
       </div>
     </section>
@@ -124,14 +151,18 @@
     <section class="section">
       <div class="container">
         <div class="allday">
-          <img src="/images/cricket-24h.svg" alt="A cricket ball on a 24-hour clock dial beside stumps and a bat" loading="lazy" width="420" height="420">
-          <div>
+          <figure class="allday-photo reveal">
+            <img src="/images/court-hall.jpg" alt="The full indoor arena under its high roof" loading="lazy" width="960" height="1280">
+            <div class="clock"><b>24</b><span>hours a day</span></div>
+          </figure>
+          <div class="reveal d1">
             <div class="section-head" style="text-align:left;margin:0 0 18px"><div class="eyebrow">Open 24 hours</div><h2>Day or night, the game never stops</h2></div>
-            <p>Early-morning nets before work, a lunchtime match with friends or a midnight session with the team — every hour of the day can be booked, every day.</p>
+            <p>Early-morning nets before work, a lunchtime match with friends or a midnight session with the team &mdash; every hour of the day can be booked, every day.</p>
             <ul class="ticks">
               <li>Book any hour, 24 hours a day</li>
               <li>Choose your own start and finish time</li>
-              <li>Indoor arena — rain or shine</li>
+              <li>Sessions can even run past midnight</li>
+              <li>Indoor arena &mdash; rain or shine</li>
             </ul>
             <p><a class="btn" href="/book.html">Book any hour</a></p>
           </div>
@@ -142,12 +173,21 @@
     <!-- CONTACT -->
     <section class="section alt" id="contact">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <div class="eyebrow">Get in touch</div>
           <h2>Find us</h2>
           <div class="rule"></div>
         </div>
-        <div class="contact-cards" id="contact-cards"></div>
+        <div class="contact-cards reveal" id="contact-cards"></div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section cta-band">
+      <div class="container reveal">
+        <h2>Ready to hit?</h2>
+        <p>Pick your date, choose your time and get your QR receipt in under a minute.</p>
+        <a class="btn" href="/book.html">Book your court now</a>
       </div>
     </section>
   </main>
@@ -156,7 +196,31 @@
   <script src="/js/common.js"></script>
   <script>
     injectChrome('home');
-    $$('[data-icon]').forEach((el) => { el.innerHTML = ICONS[el.dataset.icon]; });
+    $$('[data-icon]').forEach((el) => { el.innerHTML = ICONS[el.dataset.icon] || ''; });
+
+    /* reveal on scroll */
+    (function () {
+      const items = $$('.reveal');
+      if (!('IntersectionObserver' in window)) { items.forEach((i) => i.classList.add('in')); return; }
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      items.forEach((i) => io.observe(i));
+      setTimeout(() => items.forEach((i) => i.classList.add('in')), 4000); // safety net
+    })();
+
+    /* gallery lightbox */
+    $$('.gallery figure').forEach((fig) => fig.addEventListener('click', () => {
+      const box = h('div', { class: 'lightbox', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Photo viewer' },
+        h('img', { src: fig.dataset.full, alt: $('img', fig).alt }),
+        h('div', { class: 'cap' }, $('figcaption', fig).textContent),
+        h('button', { type: 'button', 'aria-label': 'Close' }, '\u00d7'));
+      const close = () => { box.remove(); document.removeEventListener('keydown', onKey); };
+      const onKey = (e) => { if (e.key === 'Escape') close(); };
+      box.addEventListener('click', (e) => { if (e.target !== $('img', box)) close(); });
+      document.addEventListener('keydown', onKey);
+      document.body.append(box);
+      $('button', box).focus();
+    }));
+
     getConfig().then((c) => {
       const map = {
         price: fmtMoney(c.pricePerHour, c.currency),
@@ -166,15 +230,19 @@
         payment: c.paymentNote,
       };
       $$('[data-bind]').forEach((el) => { if (map[el.dataset.bind] != null) el.textContent = map[el.dataset.bind]; });
+      // price guide
+      const guide = $('#price-guide');
+      const lens = [1, 2, 3, 4].filter((x) => x * 60 >= c.minBookingMinutes && x <= c.maxHoursPerBooking);
+      lens.forEach((x) => guide.append(h('li', {}, h('b', {}, fmtMoney(Math.round(x * c.pricePerHour), c.currency)), hoursLabel(x))));
       const k = c.contact || {};
       const box = $('#contact-cards');
       const card = (title, node) => box.append(h('div', { class: 'contact-card' }, h('h3', {}, title), node));
-      if (k.address) card('Address', k.mapUrl ? h('a', { href: k.mapUrl, target: '_blank', rel: 'noopener' }, `${k.address} — open map`) : h('span', {}, k.address));
+      if (k.address) card('Address', k.mapUrl ? h('a', { href: k.mapUrl, target: '_blank', rel: 'noopener' }, `${k.address} \u2014 open map`) : h('span', {}, k.address));
       if (k.phone) card('Phone', h('a', { href: `tel:${k.phone.replace(/\s/g, '')}` }, k.phone));
       if (k.whatsapp) card('WhatsApp', h('a', { href: `https://wa.me/${waDigits(k.whatsapp)}`, target: '_blank', rel: 'noopener' }, 'Chat with us'));
       if (k.email) card('Email', h('a', { href: `mailto:${k.email}` }, k.email));
       card('Opening hours', h('span', {}, hoursText(c)));
-      card('Online booking', h('a', { href: '/book.html' }, 'Book your slot now'));
+      card('Online booking', h('a', { href: '/book.html' }, 'Book your court now'));
     }).catch(() => {});
   </script>
 </body>
