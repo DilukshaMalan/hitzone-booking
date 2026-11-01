@@ -35,6 +35,8 @@ const HOST = process.env.HOST || '0.0.0.0';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'hitzone2026';
 const USING_DEFAULT_PASSWORD = !process.env.ADMIN_PASSWORD;
+// anti-spam: booking requests allowed per visitor per hour (counts failed attempts too)
+const BOOKING_LIMIT_PER_HOUR = parseInt(process.env.BOOKING_LIMIT_PER_HOUR || '20', 10);
 const TRUST_PROXY = String(process.env.TRUST_PROXY || '').toLowerCase() === 'true';
 
 // ---------- helpers ----------
@@ -206,13 +208,13 @@ route('GET', '/api/calendar', ({ query }) => {
     const date = addDays(from, i);
     if (date > cfg.lastBookableDate) break;
     const a = svc.getAvailability(date);
-    out.push({ date, closed: a.closed, available: a.slots.filter((s) => s.status === 'available').length, total: a.slots.length });
+    out.push({ date, closed: a.closed, freeMinutes: a.freeMinutes });
   }
   return { days: out };
 });
 
 route('POST', '/api/bookings', async ({ req, res }) => {
-  if (limited(`book:${clientIp(req)}`, 10, 3600e3)) throw new ApiError(429, 'Too many requests. Please try again later.');
+  if (limited(`book:${clientIp(req)}`, BOOKING_LIMIT_PER_HOUR, 3600e3)) throw new ApiError(429, 'Too many requests. Please try again later.');
   const body = await readBody(req);
   const b = svc.createBooking(body);
   const base = baseUrl(req);
@@ -261,13 +263,9 @@ route('GET', '/api/admin/day', ({ req, query }) => {
   requireAdmin(req);
   const date = query.get('date');
   if (!isValidDate(date)) throw new ApiError(400, 'Invalid date');
-  const active = svc.listBookings({ from: date, to: date }).filter((b) => ['pending', 'confirmed', 'blocked'].includes(b.status));
-  const { toMin } = require('./lib/util');
-  const slots = svc.generateSlots().map((sl) => {
-    const b = active.find((x) => toMin(x.start) < toMin(sl.end) && toMin(x.end) > toMin(sl.start));
-    return { ...sl, booking: b ? adminView(b) : null };
-  });
-  return { date, slots, closed: store.settings.closedDates.includes(date) };
+  const day = svc.getDaySchedule(date);
+  const rows = day.rows.map((r) => (r.type === 'booking' ? { type: 'booking', fromPrevDay: r.fromPrevDay, booking: adminView(r.booking) } : r));
+  return { date, closed: day.closed, rows };
 });
 
 route('POST', '/api/admin/bookings', async ({ req }) => {

@@ -1,6 +1,6 @@
 # HITZONE Indoor Cricket Arena – Booking Website
 
-Online slot booking for your arena: customers pick a date and time, send a request, and get a **receipt with a QR code**. You get an **email alert** for every request and approve it from an admin panel. No database and **no `npm install`** needed – bookings are stored in plain files inside `data/`.
+Online booking for your arena: customers pick a date and any start/end time, send a request, and get a **receipt with a QR code**. You get an **email alert** for every request and approve it from an admin panel. No database and **no `npm install`** needed – bookings are stored in plain files inside `data/`.
 
 ## 1. Run it (2 minutes)
 
@@ -30,19 +30,23 @@ Until email is set up, every email is saved to `data/outbox.log`, so nothing is 
 
 ## 3. How a booking works
 
-1. Customer opens **Book now**, picks a date, taps a start time (and a later slot or **+** for more hours – back‑to‑back only), enters name and phone (email optional but recommended).
+1. Customer opens **Book now**, picks a date and sees a **colour bar of the whole day** – green = available, red = already booked, grey = closed / passed – plus lists of the booked and free periods. They choose **any start time and any end time** (every 15 minutes, e.g. 3:00 PM → 5:30 PM) or tap the bar / a quick length (1 hr, 1½ hr …). The price updates instantly. They enter name and phone (email optional but recommended).
 2. They land on their **receipt** (reference like `HZ-7K3M9P`, QR code, print / PDF, add to calendar, share on WhatsApp). Status: *Awaiting confirmation*.
 3. **You get an email** and see it in **Admin → Requests**. Tap **Confirm** (or **Decline**). The customer is emailed (with the QR code) and their receipt page updates by itself.
 4. At the arena, scan the QR with your phone while signed in to the admin panel → the receipt opens with a **Mark as arrived** button.
 
-Slots are held as soon as a request is sent, so two people can never book the same time. Want instant bookings without approval? Admin → Settings → *Confirm bookings automatically*.
+Price is per hour, pro‑rated to the minute on the 15‑minute grid (15 min = LKR 1,375, 2 h 30 min = LKR 13,750). The shortest booking online is **1 hour** (Settings → *Shortest booking*) and the longest is *Max hours per booking*. Bookings may start/end at any time and **run past midnight** (e.g. 10 PM – 1 AM, shown as “1:00 AM (next day)”) because the arena is open 24 hours. Back‑to‑back bookings are allowed – no gap is needed. From the admin panel you can still add or block shorter periods.
+
+The time is held as soon as a request is sent, so two people can never book overlapping times. Want instant bookings without approval? Admin → Settings → *Confirm bookings automatically*.
+
+> **Upgrading from an older version?** On first start the site switches your existing settings to free start/end times (15‑minute steps, 1‑hour minimum) and prints a line in the log. Your prices, hours, contact details and all bookings are kept.
 
 ## 4. Admin panel
 
 - **Requests** – approve/decline with one tap; call, WhatsApp or email the customer.
-- **Daily schedule** – every slot of the day; add a **walk‑in** or **block** time (maintenance, tournaments).
+- **Daily schedule** – the day as a list of bookings and free gaps (including bookings that started the evening before); add a **walk‑in** or **block** for any start/end time.
 - **All bookings** – search, filter, **export CSV** for your accounts.
-- **Settings** – price per hour (LKR 5,500), **Open 24 hours** switch (or set opening/closing times), slot length, max hours, closed dates, contact details, payment note.
+- **Settings** – price per hour (LKR 5,500), **Open 24 hours** switch (or set opening/closing times), time step (15 minutes by default), shortest booking, max hours, closed dates, contact details, payment note.
 
 ## 5. Your data (local files)
 
